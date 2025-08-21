@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>เกมทดสอบ: คาร์โบไฮเดรต</title>
+    <style>
+        /* --- CSS Styles --- */
+        /* การตั้งค่าฟอนต์และพื้นหลังหลัก */
+        @import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@400;700&display=swap');
+
+        :root {
+            --primary-bg: #4a69bd;
+            --secondary-bg: #6a89cc;
+            --card-bg: #ffffff;
+            --text-color: #333;
+            --light-text: #ffffff;
+            --correct-color: #2ecc71;
+            --incorrect-color: #e74c3c;
+            --neutral-color: #3498db;
+            --hover-color: #2980b9;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Sarabun', sans-serif;
+            background: linear-gradient(135deg, var(--primary-bg), var(--secondary-bg));
+            color: var(--text-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 1rem;
+        }
+
+        /* คอนเทนเนอร์หลักของแอป */
+        .app-container {
+            width: 100%;
+            max-width: 600px;
+            background-color: var(--card-bg);
+            border-radius: 20px;
+            padding: 2rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+            text-align: center;
+            transition: transform 0.3s ease;
+        }
+
+        .app-container:hover {
+            transform: translateY(-5px);
+        }
+
+        /* หัวข้อ */
+        h1 {
+            color: var(--primary-bg);
+            font-size: clamp(1.5rem, 5vw, 2rem);
+            margin-bottom: 1rem;
+        }
+        
+        .progress-container {
+            width: 100%;
+            background-color: #e0e0e0;
+            border-radius: 25px;
+            margin-bottom: 1.5rem;
+        }
+
+        #progress-bar {
+            height: 10px;
+            background-color: var(--correct-color);
+            width: 0%;
+            border-radius: 25px;
+            transition: width 0.4s ease-in-out;
+        }
+
+        #question-text {
+            font-size: clamp(1.1rem, 4vw, 1.4rem);
+            margin-bottom: 1.5rem;
+            min-height: 50px;
+        }
+
+        /* ตารางปุ่มคำตอบ */
+        .btn-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 0.75rem;
+            margin: 1.5rem 0;
+        }
+
+        /* สไตล์ปุ่มทั่วไป */
+        .btn {
+            background-color: var(--neutral-color);
+            color: var(--light-text);
+            border: 2px solid transparent;
+            border-radius: 12px;
+            padding: 1rem;
+            font-size: 1rem;
+            font-family: 'Sarabun', sans-serif;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-align: left;
+        }
+
+        .btn:hover:not(:disabled) {
+            background-color: var(--hover-color);
+            transform: scale(1.02);
+        }
+        
+        .btn:disabled {
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
+
+        /* สไตล์ปุ่มเมื่อตอบถูกและผิด */
+        .btn.correct {
+            background-color: var(--correct-color);
+            border-color: #28a745;
+        }
+
+        .btn.incorrect {
+            background-color: var(--incorrect-color);
+            border-color: #c82333;
+        }
+
+        /* ปุ่มควบคุม (ถัดไป/เล่นอีกครั้ง) */
+        .controls {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        #next-btn, #restart-btn {
+            background-color: var(--primary-bg);
+            color: var(--light-text);
+            border: none;
+            border-radius: 12px;
+            padding: 0.8rem 2rem;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        #next-btn:hover, #restart-btn:hover {
+            background-color: #3b5998;
+        }
+
+        /* คลาสสำหรับซ่อนองค์ประกอบ */
+        .hide {
+            display: none;
+        }
+        
+        /* ผลลัพธ์ */
+        #results-container h2 {
+            margin-bottom: 1rem;
+        }
+        
+        #score-text {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-bottom: 1.5rem;
+        }
+    </style>
+</head>
+<body>
+    <!-- --- HTML Structure --- -->
+    <div class="app-container">
+        <h1>เกมทดสอบคาร์โบไฮเดรต!</h1>
+        
+        <!-- ส่วนของเกม -->
+        <div id="quiz-container">
+            <div class="progress-container">
+                <div id="progress-bar"></div>
+            </div>
+            <h2 id="question-text">คำถามจะแสดงที่นี่</h2>
+            <div id="answer-buttons" class="btn-grid">
+                <!-- ปุ่มคำตอบจะถูกสร้างโดย JavaScript -->
+            </div>
+            <div class="controls">
+                <button id="next-btn" class="hide">ถัดไป</button>
+            </div>
+        </div>
+
+        <!-- ส่วนแสดงผลคะแนน -->
+        <div id="results-container" class="hide">
+            <h2>สรุปผล</h2>
+            <p id="score-text"></p>
+            <button id="restart-btn">เล่นอีกครั้ง</button>
+        </div>
+    </div>
+
+    <script>
+        // --- JavaScript Logic ---
+
+        // --- ชุดคำถามและคำตอบ ---
+        // เพิ่มข้อมูลคำถามจาก artifact ที่ให้มา
+        const questions = [
+            {
+                question: "ข้อใดคือหน่วยที่เล็กที่สุดของคาร์โบไฮเดรต?",
+                answers: [
+                    { text: "มอนอแซ็กคาไรด์ (Monosaccharide)", correct: true },
+                    { text: "พอลิแซ็กคาไรด์ (Polysaccharide)", correct: false }
+                ]
+            },
+            {
+                question: "ไกลโคเจน (Glycogen) เป็นแหล่งเก็บสะสมพลังงานหลักในสิ่งมีชีวิตประเภทใด?",
+                answers: [
+                    { text: "พืช", correct: false },
+                    { text: "สัตว์", correct: true }
+                ]
+            },
+            {
+                question: "กระบวนการไกลโคไลซิส (Glycolysis) เกิดขึ้นที่ใดในเซลล์?",
+                answers: [
+                    { text: "ไซโทซอล (Cytosol)", correct: true },
+                    { text: "ไมโทคอนเดรีย (Mitochondria)", correct: false }
+                ]
+            },
+            {
+                question: "น้ำตาลซูโครส (Sucrose) จัดเป็นคาร์โบไฮเดรตประเภทใด?",
+                answers: [
+                    { text: "ไดแซ็กคาไรด์ (Disaccharide)", correct: true },
+                    { text: "มอนอแซ็กคาไรด์ (Monosaccharide)", correct: false }
+                ]
+            },
+            {
+                question: "ในภาวะที่ร่างกายขาดออกซิเจน กรดไพรูวิกจะถูกเปลี่ยนเป็นสารใด?",
+                answers: [
+                    { text: "กรดแลคติก (Lactic acid)", correct: true },
+                    { text: "อะซิทิลโคเอนไซม์ เอ (Acetyl-CoA)", correct: false }
+                ]
+            }
+        ];
+
+        // --- ดึงองค์ประกอบ HTML มาใช้งาน ---
+        const quizContainer = document.getElementById('quiz-container');
+        const questionText = document.getElementById('question-text');
+        const answerButtons = document.getElementById('answer-buttons');
+        const nextButton = document.getElementById('next-btn');
+        const resultsContainer = document.getElementById('results-container');
+        const scoreText = document.getElementById('score-text');
+        const restartButton = document.getElementById('restart-btn');
+        const progressBar = document.getElementById('progress-bar');
+
+        // --- ตัวแปรสำหรับควบคุมสถานะของเกม ---
+        let shuffledQuestions, currentQuestionIndex;
+        let score = 0;
+
+        // --- ฟังก์ชันหลัก ---
+        function startGame() {
+            score = 0;
+            // สุ่มลำดับคำถามเพื่อให้การเล่นแต่ละครั้งไม่เหมือนเดิม
+            shuffledQuestions = questions.sort(() => Math.random() - 0.5);
+            currentQuestionIndex = 0;
+            resultsContainer.classList.add('hide');
+            quizContainer.classList.remove('hide');
+            nextButton.classList.add('hide');
+            setNextQuestion();
+        }
+
+        function setNextQuestion() {
+            resetState();
+            updateProgressBar();
+            showQuestion(shuffledQuestions[currentQuestionIndex]);
+        }
+
+        function showQuestion(question) {
+            questionText.innerText = question.question;
+            question.answers.forEach(answer => {
+                const button = document.createElement('button');
+                button.innerText = answer.text;
+                button.classList.add('btn');
+                if (answer.correct) {
+                    button.dataset.correct = answer.correct;
+                }
+                button.addEventListener('click', selectAnswer, { once: true });
+                answerButtons.appendChild(button);
+            });
+        }
+
+        function resetState() {
+            nextButton.classList.add('hide');
+            while (answerButtons.firstChild) {
+                answerButtons.removeChild(answerButtons.firstChild);
+            }
+        }
+
+        function selectAnswer(e) {
+            const selectedButton = e.target;
+            const isCorrect = selectedButton.dataset.correct === "true";
+
+            if (isCorrect) {
+                score++;
+            }
+
+            // แสดงผลว่าข้อไหนถูก/ผิด และปิดการใช้งานปุ่มทั้งหมด
+            Array.from(answerButtons.children).forEach(button => {
+                setStatusClass(button, button.dataset.correct === "true");
+                button.disabled = true;
+            });
+
+            // แสดงปุ่ม "ถัดไป" หรือ "ดูผลลัพธ์"
+            if (shuffledQuestions.length > currentQuestionIndex + 1) {
+                nextButton.classList.remove('hide');
+            } else {
+                // หน่วงเวลาเล็กน้อยก่อนแสดงผล
+                setTimeout(showResults, 1000);
+            }
+        }
+        
+        function updateProgressBar() {
+            const progressPercentage = ((currentQuestionIndex) / questions.length) * 100;
+            progressBar.style.width = `${progressPercentage}%`;
+        }
+
+        function setStatusClass(element, correct) {
+            if (correct) {
+                element.classList.add('correct');
+            } else {
+                element.classList.add('incorrect');
+            }
+        }
+
+        function showResults() {
+            quizContainer.classList.add('hide');
+            resultsContainer.classList.remove('hide');
+            scoreText.innerText = `คุณทำได้ ${score} คะแนน จาก ${questions.length} คะแนน!`;
+        }
+
+        // --- การเริ่มเกมและควบคุม Event ---
+        nextButton.addEventListener('click', () => {
+            currentQuestionIndex++;
+            setNextQuestion();
+        });
+
+        restartButton.addEventListener('click', startGame);
+
+        // เริ่มเกมครั้งแรกเมื่อหน้าเว็บโหลด
+        startGame();
+    </script>
+</body>
+</html>
