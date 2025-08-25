@@ -76,6 +76,14 @@
             transition: width 0.4s ease-in-out;
         }
 
+        /* สไตล์สำหรับตัวจับเวลา */
+        #timer-container {
+            font-size: 1.1rem;
+            color: var(--text-color);
+            margin-bottom: 1rem;
+            font-weight: bold;
+        }
+
         #question-text {
             font-size: clamp(1.1rem, 4vw, 1.4rem);
             margin-bottom: 1.5rem;
@@ -160,7 +168,13 @@
         #score-text {
             font-size: 1.5rem;
             font-weight: bold;
+            margin-bottom: 1rem;
+        }
+
+        #time-summary-text {
+            font-size: 1.1rem;
             margin-bottom: 1.5rem;
+            white-space: pre-wrap; /* เพื่อให้ \n ทำงาน */
         }
     </style>
 </head>
@@ -173,6 +187,10 @@
         <div id="quiz-container">
             <div class="progress-container">
                 <div id="progress-bar"></div>
+            </div>
+            <!-- ส่วนแสดงเวลา -->
+            <div id="timer-container">
+                <p>เวลา: <span id="timer-text">0</span> วินาที</p>
             </div>
             <h2 id="question-text">คำถามจะแสดงที่นี่</h2>
             <div id="answer-buttons" class="btn-grid">
@@ -187,6 +205,7 @@
         <div id="results-container" class="hide">
             <h2>สรุปผล</h2>
             <p id="score-text"></p>
+            <p id="time-summary-text"></p> <!-- เพิ่ม element สำหรับสรุปเวลา -->
             <button id="restart-btn">เล่นอีกครั้ง</button>
         </div>
     </div>
@@ -195,7 +214,6 @@
         // --- JavaScript Logic ---
 
         // --- ชุดคำถามและคำตอบ ---
-        // เพิ่มข้อมูลคำถามจาก artifact ที่ให้มา
         const questions = [
             {
                 question: "ข้อใดคือหน่วยที่เล็กที่สุดของคาร์โบไฮเดรต?",
@@ -241,17 +259,23 @@
         const nextButton = document.getElementById('next-btn');
         const resultsContainer = document.getElementById('results-container');
         const scoreText = document.getElementById('score-text');
+        const timeSummaryText = document.getElementById('time-summary-text'); // ดึง element สรุปเวลา
         const restartButton = document.getElementById('restart-btn');
         const progressBar = document.getElementById('progress-bar');
+        const timerText = document.getElementById('timer-text');
 
         // --- ตัวแปรสำหรับควบคุมสถานะของเกม ---
         let shuffledQuestions, currentQuestionIndex;
         let score = 0;
+        let timerInterval; 
+        let secondsElapsed;
+        let timePerQuestion = []; // Array สำหรับเก็บเวลาที่ใช้ในแต่ละข้อ
 
         // --- ฟังก์ชันหลัก ---
         function startGame() {
             score = 0;
-            // สุ่มลำดับคำถามเพื่อให้การเล่นแต่ละครั้งไม่เหมือนเดิม
+            timePerQuestion = []; // รีเซ็ต array เวลา
+            if (timerInterval) clearInterval(timerInterval);
             shuffledQuestions = questions.sort(() => Math.random() - 0.5);
             currentQuestionIndex = 0;
             resultsContainer.classList.add('hide');
@@ -263,7 +287,17 @@
         function setNextQuestion() {
             resetState();
             updateProgressBar();
+            startTimer();
             showQuestion(shuffledQuestions[currentQuestionIndex]);
+        }
+        
+        function startTimer() {
+            secondsElapsed = 0;
+            timerText.innerText = secondsElapsed;
+            timerInterval = setInterval(() => {
+                secondsElapsed++;
+                timerText.innerText = secondsElapsed;
+            }, 1000);
         }
 
         function showQuestion(question) {
@@ -288,6 +322,9 @@
         }
 
         function selectAnswer(e) {
+            clearInterval(timerInterval);
+            timePerQuestion.push(secondsElapsed); // บันทึกเวลาที่ใช้สำหรับข้อนี้
+            
             const selectedButton = e.target;
             const isCorrect = selectedButton.dataset.correct === "true";
 
@@ -295,17 +332,14 @@
                 score++;
             }
 
-            // แสดงผลว่าข้อไหนถูก/ผิด และปิดการใช้งานปุ่มทั้งหมด
             Array.from(answerButtons.children).forEach(button => {
                 setStatusClass(button, button.dataset.correct === "true");
                 button.disabled = true;
             });
 
-            // แสดงปุ่ม "ถัดไป" หรือ "ดูผลลัพธ์"
             if (shuffledQuestions.length > currentQuestionIndex + 1) {
                 nextButton.classList.remove('hide');
             } else {
-                // หน่วงเวลาเล็กน้อยก่อนแสดงผล
                 setTimeout(showResults, 1000);
             }
         }
@@ -326,7 +360,14 @@
         function showResults() {
             quizContainer.classList.add('hide');
             resultsContainer.classList.remove('hide');
+            
+            // แสดงผลคะแนน
             scoreText.innerText = `คุณทำได้ ${score} คะแนน จาก ${questions.length} คะแนน!`;
+
+            // คำนวณและแสดงผลเวลา
+            const totalTime = timePerQuestion.reduce((total, time) => total + time, 0);
+            const averageTime = (totalTime / questions.length).toFixed(2); // ทศนิยม 2 ตำแหน่ง
+            timeSummaryText.innerText = `ใช้เวลาทั้งหมด: ${totalTime} วินาที\n(เฉลี่ยข้อละ ${averageTime} วินาที)`;
         }
 
         // --- การเริ่มเกมและควบคุม Event ---
